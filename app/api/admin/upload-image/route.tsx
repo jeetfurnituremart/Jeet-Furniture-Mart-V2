@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
               marginTop: 5,
             }}
           >
-            www.jeetfurniture.com
+            +91 78628 00530
           </span>
         </div>
       ),
