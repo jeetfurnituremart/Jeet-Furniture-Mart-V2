@@ -3,6 +3,7 @@ import { client } from '@/sanity/lib/client';
 import { approvedTestimonialsQuery } from '@/sanity/lib/queries';
 import { Star, MessageSquareQuote } from 'lucide-react';
 import WhatsAppButton from '@/components/ui/WhatsAppButton';
+import TestimonialCarousel from '@/components/ui/TestimonialCarousel';
 
 export const revalidate = 3600; // ISR - revalidate every hour
 
@@ -119,6 +120,9 @@ export default async function TestimonialsPage() {
             Discover what our customers say about our handcrafted finishes, modular solutions, and CNC details.
           </p>
         </div>
+
+        {/* Automatic Showcase Carousel */}
+        <TestimonialCarousel />
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
