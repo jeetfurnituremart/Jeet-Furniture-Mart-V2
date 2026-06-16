@@ -19,6 +19,9 @@ const nextConfig: NextConfig = {
     ],
   },
   serverExternalPackages: ['sharp'],
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
 };
 
 export default nextConfig;

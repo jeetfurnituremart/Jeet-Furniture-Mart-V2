@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, ArrowLeft } from 'lucide-react';
+import { Upload, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { compressImage } from '@/utils/imageCompression';
 
 interface ProductData {
   _id: string;
@@ -19,6 +20,8 @@ interface ProductData {
 export default function EditProductForm({ product }: { product: ProductData }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('');
+  const [isPending, startTransition] = useTransition();
   const [imageFile, setImageFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState({
@@ -45,8 +48,12 @@ export default function EditProductForm({ product }: { product: ProductData }) {
 
       // 1. Upload new image if selected
       if (imageFile) {
+        setLoadingStatus('Compressing Image (Client-side)...');
+        const compressedFile = await compressImage(imageFile);
+
+        setLoadingStatus('Uploading & Watermarking Image...');
         const imgData = new FormData();
-        imgData.append('file', imageFile);
+        imgData.append('file', compressedFile);
         const uploadRes = await fetch('/api/admin/upload-image', {
           method: 'POST',
           body: imgData,
@@ -64,6 +71,7 @@ export default function EditProductForm({ product }: { product: ProductData }) {
       }
 
       // 2. Update Product via PATCH
+      setLoadingStatus('Saving Product Data...');
       const productRes = await fetch(`/api/admin/products/${product._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -77,8 +85,11 @@ export default function EditProductForm({ product }: { product: ProductData }) {
       if (!productRes.ok) throw new Error(productJson.error || 'Failed to update product');
 
       // 3. Navigate back
-      router.push('/admin/products');
-      router.refresh();
+      setLoadingStatus('Refreshing Dashboard...');
+      startTransition(() => {
+        router.push('/admin/products');
+        router.refresh();
+      });
     } catch (error: any) {
       console.error(error);
       alert(`Error: ${error.message}`);
@@ -96,7 +107,16 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         <h2 className="text-2xl font-display font-bold text-stone-900">Edit Product</h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-[#E0DDD8] p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white border border-[#E0DDD8] p-6 space-y-6 relative overflow-hidden">
+        
+        {/* Loading Overlay */}
+        {(loading || isPending) && (
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center rounded-xl">
+            <Loader2 className="h-12 w-12 text-gold-accent animate-spin mb-4" />
+            <h3 className="text-xl font-display font-bold text-stone-900">{loadingStatus || 'Processing...'}</h3>
+            <p className="text-sm text-stone-500 mt-2">This may take a few moments</p>
+          </div>
+        )}
         
         {/* Basic Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,10 +245,10 @@ export default function EditProductForm({ product }: { product: ProductData }) {
         <div className="pt-4 border-t border-[#E0DDD8] flex justify-end">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isPending}
             className="flex justify-center py-3 px-8 border border-transparent text-xs font-sans uppercase font-bold tracking-widest text-white bg-black hover:bg-stone-900 focus:outline-none transition-all disabled:opacity-50"
           >
-            {loading ? 'Saving Changes...' : 'Save Changes'}
+            {(loading || isPending) ? 'Saving Changes...' : 'Save Changes'}
           </button>
         </div>
 

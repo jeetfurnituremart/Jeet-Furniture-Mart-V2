@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeClient } from '@/sanity/lib/client';
+import { revalidatePath } from 'next/cache';
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const id = (await params).id;
     await writeClient.delete(id);
+    revalidatePath('/admin/products');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Failed to delete product:', error);
@@ -46,6 +48,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     }
 
     const result = await writeClient.patch(id).set(updateData).commit();
+    revalidatePath('/admin/products');
     return NextResponse.json({ success: true, product: result });
   } catch (error: any) {
     console.error('Failed to update product:', error);

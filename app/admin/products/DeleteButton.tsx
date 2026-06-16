@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function DeleteButton({ id, isMobile }: { id: string, isMobile?: boolean }) {
   const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -21,7 +22,9 @@ export default function DeleteButton({ id, isMobile }: { id: string, isMobile?: 
         } catch (e) {}
         throw new Error(errorMsg);
       }
-      router.refresh();
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error: any) {
       console.error('Delete error:', error);
       alert(`Error deleting product: ${error.message}`);
@@ -33,7 +36,7 @@ export default function DeleteButton({ id, isMobile }: { id: string, isMobile?: 
   return (
     <button
       onClick={handleDelete}
-      disabled={loading}
+      disabled={loading || isPending}
       className={
         isMobile
           ? "px-4 py-1.5 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 transition-colors disabled:opacity-50"
@@ -41,7 +44,7 @@ export default function DeleteButton({ id, isMobile }: { id: string, isMobile?: 
       }
       title="Delete Product"
     >
-      {isMobile ? (loading ? '...' : 'Delete') : <Trash2 className="w-4 h-4" />}
+      {isMobile ? ((loading || isPending) ? '...' : 'Delete') : <Trash2 className="w-4 h-4" />}
     </button>
   );
 }

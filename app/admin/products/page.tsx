@@ -6,7 +6,7 @@ import DeleteButton from './DeleteButton';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminProductsPage() {
-  const products = await client.fetch(`*[_type == "product"] | order(createdAt desc) {
+  const products = await client.withConfig({ useCdn: false }).fetch(`*[_type == "product"] | order(createdAt desc) {
     _id,
     name,
     category,

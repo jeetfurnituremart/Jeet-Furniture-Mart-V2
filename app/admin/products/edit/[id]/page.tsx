@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   
-  const product = await client.fetch(`*[_type == "product" && _id == $id][0] {
+  const product = await client.withConfig({ useCdn: false }).fetch(`*[_type == "product" && _id == $id][0] {
     _id,
     name,
     category,

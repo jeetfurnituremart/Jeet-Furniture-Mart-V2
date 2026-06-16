@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeClient } from '@/sanity/lib/client';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(request: NextRequest) {
   try {
+    console.time('[PRODUCT API] Total Time');
     const body = await request.json();
     
     // Auto-generate a slug from the name if not provided
@@ -38,8 +40,13 @@ export async function POST(request: NextRequest) {
         : [],
     };
 
+    console.time('[PRODUCT API] Sanity Create');
     const result = await writeClient.create(doc);
+    console.timeEnd('[PRODUCT API] Sanity Create');
 
+    revalidatePath('/admin/products');
+    
+    console.timeEnd('[PRODUCT API] Total Time');
     return NextResponse.json({ success: true, product: result });
   } catch (error: any) {
     console.error('Failed to create product:', error);
